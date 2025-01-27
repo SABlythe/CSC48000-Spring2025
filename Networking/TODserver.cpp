@@ -96,29 +96,78 @@ int doServer(int onPort)
   
 }
 
+int requestNumber=0;
 
 void doWork(int connsock, struct sockaddr_in *client_addr)
 {
-  // what this server generates ...
-  string buffer;
-
-  // build response string
-  time_t currTime = time(nullptr);
-  buffer = "The time on this server is :"; 
-  buffer += ctime( &currTime ); 
+  requestNumber++;
   
-  //we simply send this string to the client
-  char *cbuff=(char *)buffer.c_str();
+  // what is being requested?
+  string command="";
 
-  int needed=buffer.length();
-  while(needed)  // as long as writing is not yet completed, 
-    { 
-      // keep writing more of the buffer
-      int n=write(connsock, cbuff, needed);
-      needed-=n;
-      cbuff+=n;
+  char readBuffer[81];
+  int charsRead = read(connsock, readBuffer, 80);
+  readBuffer[charsRead]='\0';
+  
+
+
+  if (readBuffer[charsRead-1]=='\n')
+    {
+      readBuffer[charsRead-2]='\0';
+      command += readBuffer;      
+      cout << "Got a good command:" << command << ":" << endl;
+    }
+  else
+    {
+      cout << "Command not newline terminated:" << command << ":" << endl;
     }
 
+  if (command=="time")
+    {
+      // what this server generates ...
+      string buffer;
+      
+      // build response string
+      time_t currTime = time(nullptr);
+      buffer = "The time on this server is :"; 
+      buffer += ctime( &currTime ); 
+      
+      //we simply send this string to the client
+      char *cbuff=(char *)buffer.c_str();
+      
+      int needed=buffer.length();
+      while(needed)  // as long as writing is not yet completed, 
+	{ 
+	  // keep writing more of the buffer
+	  int n=write(connsock, cbuff, needed);
+	  needed-=n;
+	  cbuff+=n;
+	}
+    }
+  else if (command=="count")
+    {
+      string buffer;
+      
+      // build response string
+      buffer = "Your request number is :";
+      buffer += requestNumber; // think about how to fix this!
+      buffer += "\r\n"; 
+      
+      //we simply send this string to the client
+      char *cbuff=(char *)buffer.c_str();
+      
+      int needed=buffer.length();
+      while(needed)  // as long as writing is not yet completed, 
+	{ 
+	  // keep writing more of the buffer
+	  int n=write(connsock, cbuff, needed);
+	  needed-=n;
+	  cbuff+=n;
+	}
+    }
+  else // error command
+    {
+    }
   // make a local log of who connected ...
   cout << "Connection from " << inet_ntoa(client_addr->sin_addr) << endl;
   
