@@ -49,6 +49,7 @@ int main(int argc, char *argv[])
 	
   int clientCount=1; // server responds with the cilent number, initially 1.
 
+  // NOTE: unlike TCP based serevr, there's no listn, accept, etc... 
   //server ... so keep processing client requests until ... forever !!
   while(true)
     {
